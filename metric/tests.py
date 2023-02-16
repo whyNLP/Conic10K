@@ -12,7 +12,21 @@ def test_cmp_question():
     a1, a2 = annotation_pairs[0]
     assert cmp_question(a1, a2) == 24
 
-def test_metric_general(recwarn):
+def test_metric_general_tiny(recwarn):
+    with open('tests/pred.txt', 'r') as f:
+        preds = f.read().split('\n')
+    with open('tests/gold.txt', 'r') as f:
+        golds = f.read().split('\n')
+
+    preds = [pred.replace(';', '\n') for pred in preds][:23]
+    golds = [gold.replace(';', '\n') for gold in golds][:23]
+    
+    mtc = Metric()
+    mtc.cmps(preds, golds)
+
+    assert abs(mtc.f1 - 0.955732645806477) < 1e-3
+
+def test_metric_general_medium(recwarn):
     with open('tests/pred.txt', 'r') as f:
         preds = f.read().split('\n')
     with open('tests/gold.txt', 'r') as f:
@@ -25,3 +39,17 @@ def test_metric_general(recwarn):
     mtc.cmps(preds, golds)
 
     assert abs(mtc.f1 - 0.9637181486584114) < 1e-3
+
+def test_metric_general_large(recwarn):
+    with open('tests/pred.txt', 'r') as f:
+        preds = f.read().split('\n')
+    with open('tests/gold.txt', 'r') as f:
+        golds = f.read().split('\n')
+
+    preds = [pred.replace(';', '\n') for pred in preds]
+    golds = [gold.replace(';', '\n') for gold in golds]
+    
+    mtc = Metric()
+    mtc.cmps(preds, golds)
+
+    assert abs(mtc.f1 - 0.9482032003728795) < 1e-3

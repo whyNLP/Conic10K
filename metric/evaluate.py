@@ -5,7 +5,7 @@ from sympy.parsing.sympy_parser import (parse_expr,\
      standard_transformations, convert_equals_signs,\
      lambda_notation, repeated_decimals, auto_number,\
      factorial_notation)
-from sympy import Symbol, Function
+from sympy import Symbol, Function, Dummy
 from sympy.simplify.simplify import simplify
 from sympy.core import Add, Mul, Pow, Number, Tuple
 from sympy.core.relational import Relational
@@ -25,10 +25,20 @@ class TypeSymbol(Symbol):
     A decorator for Symbol to allow additional information. We have to define
     a new class since Symbol uses `__slots__` to save memory.
     """
+    def __new__(cls, name, **assumptions):
+        """Override the __new__ function to enforce symbols with different
+        types map to difference objects. The type string is written to the
+        assumption of a symbol.
+        """
+        type_: str = assumptions.pop('type', 'Object')
+        assumptions['is_type_%s' % type_] = True
+
+        return super().__new__(cls, name, **assumptions)
+    
     def __init__(self, *args, **kwargs):
-        Symbol.__init__(*args, **kwargs)
-        if 'type' in kwargs:
-            self.type = kwargs['type']
+        self.type: str = kwargs.pop('type', 'Object')
+        # XXX: it is strange that super() is object.
+        # super().__init__(*args, **kwargs)
 
 # Override keywords in sympy
 _default_local_dict = {
@@ -140,7 +150,7 @@ def parse_al(s, local_dict = None):
         for v in vs:
             if v in local_dict: warnings.warn("parse_al(): Repeatively declare variable %s. "
                                               "Original variable will be overrided." % v)
-            tmp_v = TypeSymbol(v+'_WITH_TYPE_'+tp, type=parse_al(tp))
+            tmp_v = TypeSymbol(v, type=tp)
             local_dict[v] = tmp_v
         return None
     ## Deal with enumerate sets
@@ -276,11 +286,6 @@ def parse_annotation(annotation):
     vars = list(local_dict.values())
     return vars, facts, queries
 
-def gen_variable():
-    """Create a new dummy variable."""
-    return Symbol('_DUMMY_' + str(gen_variable.counter.__next__()) + '_')
-gen_variable.counter = itertools.count()
-
 def cmp_question(
         annotation1: str, 
         annotation2: str, 
@@ -307,11 +312,11 @@ def cmp_question(
     vars1, facts1, queries1 = parse_annotation(annotation1)
     vars2, facts2, queries2 = parse_annotation(annotation2)
     # remove common vars. we think they are the same (not necessarily), reduce accuracy but may accelerate the comparing process.
-    common_vars = [v for v in vars1 if v in vars2 and len(v.name.split('_WITH_TYPE_')[0]) == 1] if speedup else []
+    common_vars = [v for v in vars1 if v in vars2 and len(v.name) == 1] if speedup else []
     vars1, vars2 = [v for v in vars1 if v not in common_vars], [v for v in vars2 if v not in common_vars]
     
     max_cnt = 0
-    dummy_vars = [gen_variable() for _ in range(len(vars1))]
+    dummy_vars = [Dummy() for _ in range(len(vars1))]
 
     iterator = get_alignments(vars1, vars2)
     if verbose:
