@@ -25,6 +25,9 @@ class TypeSymbol(Symbol):
     A decorator for Symbol to allow additional information. We have to define
     a new class since Symbol uses `__slots__` to save memory.
     """
+
+    __slots__ = ('name', 'type')
+
     def __new__(cls, name, **assumptions):
         """Override the __new__ function to enforce symbols with different
         types map to difference objects. The type string is written to the
@@ -37,7 +40,7 @@ class TypeSymbol(Symbol):
     
     def __init__(self, *args, **kwargs):
         self.type: str = kwargs.pop('type', 'Object')
-        # XXX: it is strange that super() is object.
+        # XXX: it is strange that super() is object instead of Symbol
         # super().__init__(*args, **kwargs)
 
 # Override keywords in sympy
