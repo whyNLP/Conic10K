@@ -201,8 +201,8 @@ def align2diff(
 
     alignment = best_alignments[0]
     for align1, align2 in alignment:
-        idx1.remove(align1)
-        idx2.remove(align2)
+        if align1 in idx1: idx1.remove(align1)
+        if align2 in idx2: idx2.remove(align2)
 
     diff_string = ""
     if idx1 and idx2:

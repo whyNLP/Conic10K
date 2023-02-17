@@ -33,7 +33,7 @@ def test_metric_general_tiny(recwarn, data):
     mtc = Metric()
     mtc.cmps(preds, golds)
 
-    assert abs(mtc.f1 - 0.955732645806477) < 1e-3
+    assert abs(mtc.avg_f1 - 0.955732645806477) < 1e-3
 
 def test_metric_general_medium(recwarn, data):
     preds, golds = data
@@ -44,7 +44,7 @@ def test_metric_general_medium(recwarn, data):
     mtc = Metric()
     mtc.cmps(preds, golds)
 
-    assert abs(mtc.f1 - 0.9637181486584114) < 1e-3
+    assert abs(mtc.avg_f1 - 0.9637181486584114) < 1e-3
 
 @pytest.mark.skip(reason='Time costly test.')
 def test_metric_general_large(recwarn, data):
@@ -53,7 +53,7 @@ def test_metric_general_large(recwarn, data):
     mtc = Metric()
     mtc.cmps(preds, golds)
 
-    assert abs(mtc.f1 - 0.9482032003728795) < 1e-3
+    assert abs(mtc.avg_f1 - 0.9482032003728795) < 1e-3
 
 
 def test_difflog(recwarn, data):
