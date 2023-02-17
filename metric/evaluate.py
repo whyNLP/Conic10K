@@ -145,7 +145,7 @@ def parse_al(s, local_dict = None):
     s = re.sub(r'lambda', 'lbd_', s)
     ## TODO: Replace special variables. This might be a hack?
     s = re.sub(r'(?:([a-zA-Z])(?:_\{(\d+)\}))', r'\1_\2', s)
-    ## Detect type definition. Return None for type definition.
+    ## Detect type definition. Return a list of variables for type definition.
     def_rule = re.compile(r'^\s*(\w+\s*(,\s*\w+\s*)*):\s*(\w+)\s*$')
     if re.match(def_rule, s):
         tp = re.match(def_rule, s).group(3)
@@ -155,7 +155,7 @@ def parse_al(s, local_dict = None):
                                               "Original variable will be overrided." % v)
             tmp_v = TypeSymbol(v, type=tp)
             local_dict[v] = tmp_v
-        return None
+        return [local_dict[v] for v in vs]
     ## Deal with enumerate sets
     s = re.sub(r'\{(.*)\}', r'set(\1)', s)
     ## Now eval the string.  (A security hole; do not use with an adversary.)
@@ -331,23 +331,39 @@ def cmp_question(
         
         # substitute the variables according to the alignment, then
         # count the common sentences.
-        sub_fqs1, sub_fqs2 = [], []
-        for sent1 in facts1 + queries1:
+        sub_facts1, sub_facts2 = [], [] # facts
+        for sent1 in facts1:
             for tgt, src1 in zip(dummy_vars, aligned_vars1):
                 sent1 = sent1.subs(src1, tgt)
-            sub_fqs1.append(sent1)
-        for sent2 in facts2 + queries2:
+            sub_facts1.append(sent1)
+        for sent2 in facts2:
             for tgt, src2 in zip(dummy_vars, aligned_vars2):
                 sent2 = sent2.subs(src2, tgt)
-            sub_fqs2.append(sent2)
-        for sent1 in sub_fqs1:
-            for sent2 in sub_fqs2[:]:
+            sub_facts2.append(sent2)
+        for sent1 in sub_facts1:
+            for sent2 in sub_facts2[:]:
                 if cmp_sentence(sent1, sent2):
                     cnt += 1
-                    sub_fqs2.remove(sent2)
+                    sub_facts2.remove(sent2)
                     break
         
-        if include_dec:
+        sub_queries1, sub_queries2 = [], [] # queries
+        for sent1 in queries1:
+            for tgt, src1 in zip(dummy_vars, aligned_vars1):
+                sent1 = sent1.subs(src1, tgt)
+            sub_queries1.append(sent1)
+        for sent2 in queries2:
+            for tgt, src2 in zip(dummy_vars, aligned_vars2):
+                sent2 = sent2.subs(src2, tgt)
+            sub_queries2.append(sent2)
+        for sent1 in sub_queries1:
+            for sent2 in sub_queries2[:]:
+                if cmp_sentence(sent1, sent2):
+                    cnt += 1
+                    sub_queries2.remove(sent2)
+                    break
+        
+        if include_dec: # variables
             for src1, src2 in zip(aligned_vars1, aligned_vars2):
                 if src1.type == src2.type:
                     cnt += 1
@@ -393,51 +409,3 @@ def get_alignments(vars1, vars2):
     for aligns in itertools.product(*permute_iterators):
         yield [item for x, y in aligns for item in x], [item for x, y in aligns for item in y]
 
-
-# ===== Utils for other use =====
-# TODO: move to other files
-
-def filter_annotation(annotation):
-    """
-    Similar to parse_annotation, but used for filtering out invalid sentences.
-    Usually embedded after the model predictions.
-    """
-    vars, facts, queries = [], [], []
-    local_dict = {}
-
-    pattern = re.compile(r'\[\[\d+\]\]')
-    has_escape = lambda s: re.search(pattern, s)
-
-    for sentence in annotation.split('\n'):
-        sentence = sentence.strip()
-        if not sentence: continue
-
-        try: # escape parse errors
-            if ':' in sentence and not has_escape(sentence): # declaration
-                parse_al(sentence, local_dict=local_dict)
-        except Exception:
-            pass
-    
-    for sentence in annotation.split('\n'):
-        sentence = sentence.strip()
-        if not sentence or has_escape(sentence): continue
-
-        try: # escape parse errors
-            if ':' in sentence: # declaration
-                def_rule = re.compile(r'^\s*(\w+\s*(,\s*\w+\s*)*):\s*(\w+)\s*$')
-                if re.match(def_rule, sentence):
-                    vars.append(sentence)
-            elif '?' in sentence: # query
-                obj = parse_al(re.sub(r'=\s*\?', '', sentence), local_dict=local_dict)
-                # dummy subsititution to hack annoying end2end predictions
-                for v in local_dict.values(): obj.subs(v, Symbol('S'))
-                queries.append(sentence)
-            else: # fact
-                obj = parse_al(sentence, local_dict=local_dict)
-                # dummy subsititution to hack annoying end2end predictions
-                for v in local_dict.values(): obj.subs(v, Symbol('S'))
-                facts.append(sentence)
-        except Exception:
-            pass
-    
-    return '\n'.join(vars + facts + queries)
