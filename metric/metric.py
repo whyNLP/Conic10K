@@ -45,7 +45,7 @@ class Record:
         detailed_record += "\n\nDiff Result (< pred, > gold):\n"
         detailed_record += self.diff
 
-        detailed_record += "\n\nComparasion Result:\n"
+        detailed_record += "\n\nComparison Result:\n"
         detailed_record += f"Common: {self.common}\n"
         detailed_record += f"Gold Sentences: {self.num_gold}\n"
         detailed_record += f"Predicted Sentences: {self.num_pred}\n"
