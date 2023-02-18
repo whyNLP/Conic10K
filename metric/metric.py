@@ -36,11 +36,11 @@ class Record:
         detailed_record += self.question
 
         if not diff_only:
-            detailed_record += "\n\nGold Annotation:\n"
-            detailed_record += self.gold
-
             detailed_record += "\n\nPredicted Annotation:\n"
             detailed_record += self.pred
+
+            detailed_record += "\n\nGold Annotation:\n"
+            detailed_record += self.gold
         
         detailed_record += "\n\nDiff Result (< pred, > gold):\n"
         detailed_record += self.diff
