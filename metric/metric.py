@@ -72,12 +72,14 @@ class Metric:
     >>> print(mtc) # show the report  # doctest: +SKIP
     ...
     """
-    def __init__(self, include_dec: bool = True):
+    def __init__(self, include_dec: bool = True, speedup: bool = True):
         """
         The evaluation metric toolkit for L annotations.
         :param include_dec: include the declaration sentences in evaluation.
+        :param speedup: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
         """
         self.include_dec: bool = include_dec
+        self.speedup: bool = speedup
 
         ## Records
         self.records: List[Record] = []
@@ -128,7 +130,7 @@ class Metric:
         :param question: (optional) The question text.
         :param verbose: Show the progress bar.
         """
-        common, aligns, filtered = align_question(pred, gold, include_dec=self.include_dec, verbose=verbose)
+        common, aligns, filtered = align_question(pred, gold, include_dec=self.include_dec, verbose=verbose, speedup=self.speedup)
         diff_log: str = align2diff(aligns, filtered)
         num_gold = cnt_sentences(gold, include_dec=self.include_dec)
         num_pred = cnt_sentences(pred, include_dec=self.include_dec)
