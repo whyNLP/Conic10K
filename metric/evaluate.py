@@ -294,7 +294,7 @@ def cmp_question(
         annotation2: str, 
         include_dec: bool = True,
         verbose: bool = False, 
-        speedup: bool = True
+        speed_up: bool = True
     ):
     """
     Compare two annotations for the same question.
@@ -310,12 +310,12 @@ def cmp_question(
     :param annotation2: The 2nd annotation.
     :param include_dec: Include the declaration sentences in evaluation.
     :param verbose: Show the progress bar.
-    :param speedup: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
+    :param speed_up: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
     """
     vars1, facts1, queries1 = parse_annotation(annotation1)
     vars2, facts2, queries2 = parse_annotation(annotation2)
     # remove common vars. we think they are the same (not necessarily), reduce accuracy but may accelerate the comparing process.
-    common_vars = [v for v in vars1 if v in vars2 and len(v.name) == 1] if speedup else []
+    common_vars = [v for v in vars1 if v in vars2 and len(v.name) == 1] if speed_up else []
     vars1, vars2 = [v for v in vars1 if v not in common_vars], [v for v in vars2 if v not in common_vars]
     
     max_cnt = 0

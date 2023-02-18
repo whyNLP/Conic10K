@@ -1,6 +1,6 @@
 from typing import List
 from .evaluate import cnt_sentences
-from .utils import align_question, align2diff
+from .utils import align_question, align2diff, filter_annotation
 
 from tqdm import tqdm
 
@@ -72,14 +72,16 @@ class Metric:
     >>> print(mtc) # show the report  # doctest: +SKIP
     ...
     """
-    def __init__(self, include_dec: bool = True, speedup: bool = True):
+    def __init__(self, include_dec: bool = True, speed_up: bool = True, filter_out: bool = False):
         """
         The evaluation metric toolkit for L annotations.
         :param include_dec: include the declaration sentences in evaluation.
-        :param speedup: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
+        :param speed_up: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
+        :param filter_out: Filter out invalid sentences in the prediction.
         """
         self.include_dec: bool = include_dec
-        self.speedup: bool = speedup
+        self.speed_up: bool = speed_up
+        self.filter_out: bool = filter_out
 
         ## Records
         self.records: List[Record] = []
@@ -130,7 +132,10 @@ class Metric:
         :param question: (optional) The question text.
         :param verbose: Show the progress bar.
         """
-        common, aligns, filtered = align_question(pred, gold, include_dec=self.include_dec, verbose=verbose, speedup=self.speedup)
+        if self.filter_out:
+            pred = filter_annotation(pred)
+        
+        common, aligns, filtered = align_question(pred, gold, include_dec=self.include_dec, verbose=verbose, speed_up=self.speed_up)
         diff_log: str = align2diff(aligns, filtered)
         num_gold = cnt_sentences(gold, include_dec=self.include_dec)
         num_pred = cnt_sentences(pred, include_dec=self.include_dec)

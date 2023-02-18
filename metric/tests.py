@@ -2,7 +2,7 @@ import pytest
 
 from .evaluate import cmp_question
 from .metric import Metric
-from .utils import align_question, diff
+from .utils import align_question, diff, filter_annotation
 
 @pytest.fixture()
 def data():
@@ -70,3 +70,14 @@ def test_difflog(recwarn, data):
 
     assert diff(preds[4], golds[4]) == log4
     assert diff(preds[94], golds[94]) == log94
+
+def test_filter(recwarn):
+    """
+    We do not remove the same query since it may come from the (problematic) question.
+    """
+    annotation = "G: Hyperbola\nH: Point\nExpression(G) = (x^2/a^2 + y^2 = 1)\nExpression(G) = (x^2/a^2+y^2=1)\nEccentricity(G) = ?\nEccentricity(G) = ?"
+    filtered = filter_annotation(annotation)
+    assert filtered in [
+        "G: Hyperbola\nExpression(G) = (x^2/a^2+y^2=1)\nEccentricity(G) = ?\nEccentricity(G) = ?",
+        "G: Hyperbola\nExpression(G) = (x^2/a^2 + y^2 = 1)\nEccentricity(G) = ?\nEccentricity(G) = ?"
+    ]

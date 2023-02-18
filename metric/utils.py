@@ -80,7 +80,7 @@ def align_question(
         annotation2: str, 
         include_dec: bool = True,
         verbose: bool = False, 
-        speedup: bool = True
+        speed_up: bool = True
     ):
     """
     Compare two annotations for the same question.
@@ -96,7 +96,7 @@ def align_question(
     :param annotation2: The 2nd annotation.
     :param include_dec: Include the declaration sentences in evaluation.
     :param verbose: Show the progress bar.
-    :param speedup: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
+    :param speed_up: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
     """
     (vars1, facts1, queries1), filtered1, alignment1 = parse_and_align_annotation(annotation1)
     (vars2, facts2, queries2), filtered2, alignment2 = parse_and_align_annotation(annotation2)
@@ -113,7 +113,7 @@ def align_question(
         return None
     
     # remove common vars. we think they are the same (not necessarily), reduce accuracy but may accelerate the comparing process.
-    common_vars = [v for v in vars1 if v in vars2 and len(v.name) == 1] if speedup else []
+    common_vars = [v for v in vars1 if v in vars2 and len(v.name) == 1] if speed_up else []
     vars1, vars2 = [v for v in vars1 if v not in common_vars], [v for v in vars2 if v not in common_vars]
     default_alignments = [get_align_tuples(v, v) for v in common_vars]
     
@@ -219,24 +219,53 @@ def align2diff(
 
 ## ===== Easy-to-access functions =====
 
-def filter_annotation(annotation: str) -> str:
-    """
-    Filter out invalid sentences in an annotation. Usually embedded
-    after the model predictions.
-    """
-    _, filtered, _ = parse_and_align_annotation(annotation)
-    return '\n'.join(filtered) if filtered else ''
-
 def diff(
         annotation1: str, 
         annotation2: str, 
         include_dec: bool = True,
         verbose: bool = False, 
-        speedup: bool = True
+        speed_up: bool = True
     ) -> str:
     """
     Generate a diff log for two annotations. Return a human-readable diff string.
     """
-    _, aligns, filtered = align_question(annotation1, annotation2, include_dec, verbose, speedup)
+    _, aligns, filtered = align_question(annotation1, annotation2, include_dec, verbose, speed_up)
     diff_log: str = align2diff(aligns, filtered)
     return diff_log
+
+
+## ===== Filter annotations =====
+
+def filter_annotation(annotation: str) -> str:
+    """
+    Filter out invalid sentences in an annotation. Usually embedded
+    after the model predictions.
+
+    Notice: This functions is by default NOT called in Metric. Sometimes
+    we want to evaluate the direct output of a model instead of achieving
+    a high score. Thus, please turn on the corresponding argument when 
+    initializing a Metric if you want to clean up the prediction.
+    """
+    ## remove invalid sentences
+    (vars, facts, queries), to_filter, alignment = parse_and_align_annotation(annotation)
+
+    ## check used variables
+    used_vars = set()
+    for expr in facts + queries:
+        used_vars = used_vars.union(expr.free_symbols)
+    unused_vars = set(vars).difference(used_vars)
+    undeclared_vars = used_vars.difference(set(vars).union({Symbol('x'), Symbol('y')}))
+
+    declared_and_used_vars = set(vars).intersection(used_vars)
+    filtered = [f"{v}: {v.type}" for v in declared_and_used_vars]
+
+    ## remove same facts
+    for idx in alignment['facts'].values():
+        filtered.append(to_filter[idx])
+
+    for expr in queries:
+        idx = alignment['queries'][expr]
+        filtered.append(to_filter[idx])
+
+    return '\n'.join(filtered) if filtered else ''
+    
