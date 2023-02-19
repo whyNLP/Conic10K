@@ -1,13 +1,11 @@
 from typing import List
-from .evaluate import cnt_sentences
-from .utils import align_question, align2diff, filter_annotation
+from .evaluate import cmp_question
+from .utils import cnt_sentences, align2diff, filter_annotation
 
 from tqdm import tqdm
 
 class Record:
     """Helper class for Metric."""
-    
-    __slots__ = ['pred', 'gold', 'diff', 'question', 'common', 'num_gold', 'num_pred', 'correct']
 
     def __init__(
         self,
@@ -59,8 +57,14 @@ class Record:
 
 class Metric:
     """
-    The evaluation metric toolkit for L annotations.
-    Use `Metric.cmp` or `Metric.cmps` to compare annotations, and print the `Metric` object to show the report.
+    The evaluation metric toolkit for AL annotations.
+    Use `Metric.cmp` or `Metric.cmps` to compare annotations, and print the `Metric`
+    object to show the report.
+
+    Notice: The filtering algorithm is by default NOT used in Metric. Sometimes
+    we want to evaluate the direct output of a model instead of achieving a high
+    score. Thus, please turn on the `filter_out` option when initializing a
+    Metric if you want to clean up the prediction.
     
     >>> mtc = Metric()
     >>> question = "长为2的线段$AB$的两个端点在抛物线$y^{2}=x$上滑动,则线段$AB$中点$N$到$y$轴距离的最小值是?"
@@ -135,7 +139,7 @@ class Metric:
         if self.filter_out:
             pred = filter_annotation(pred)
         
-        common, aligns, filtered = align_question(pred, gold, include_dec=self.include_dec, verbose=verbose, speed_up=self.speed_up)
+        common, aligns, filtered = cmp_question(pred, gold, include_dec=self.include_dec, verbose=verbose, speed_up=self.speed_up)
         diff_log: str = align2diff(aligns, filtered)
         num_gold = cnt_sentences(gold, include_dec=self.include_dec)
         num_pred = cnt_sentences(pred, include_dec=self.include_dec)

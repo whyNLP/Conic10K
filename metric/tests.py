@@ -2,7 +2,7 @@ import pytest
 
 from .evaluate import cmp_question
 from .metric import Metric
-from .utils import align_question, diff, filter_annotation
+from .utils import diff, filter_annotation
 
 @pytest.fixture()
 def data():
@@ -20,8 +20,7 @@ def data():
 def test_cmp_question(data):
     preds, golds = data
     a1, a2 = preds[4], golds[4]
-    assert cmp_question(a1, a2) == 24
-    assert align_question(a1, a2)[0] == 24
+    assert cmp_question(a1, a2)[0] == 24
 
 
 def test_metric_general_tiny(recwarn, data):
