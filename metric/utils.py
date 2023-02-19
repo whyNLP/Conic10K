@@ -1,7 +1,8 @@
 from typing import List, Tuple
 from sympy import Symbol
 
-from .evaluate import parse_annotation, cmp_question
+from .evaluate import parse_annotation
+from .evaluatep import cmp_question
 
 ## ===== Sentence Counter =====
 
@@ -54,12 +55,13 @@ def diff(
         annotation2: str, 
         include_dec: bool = True,
         verbose: bool = False, 
+        max_workers: int = None,
         speed_up: bool = True
     ) -> str:
     """
     Generate a diff log for two annotations. Return a human-readable diff string.
     """
-    _, aligns, filtered = cmp_question(annotation1, annotation2, include_dec, verbose, speed_up)
+    _, aligns, filtered = cmp_question(annotation1, annotation2, include_dec, verbose, max_workers, speed_up)
     diff_log: str = align2diff(aligns, filtered)
     return diff_log
 

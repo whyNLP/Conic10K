@@ -1,5 +1,5 @@
 from typing import List
-from .evaluate import cmp_question
+from .evaluatep import cmp_question
 from .utils import cnt_sentences, align2diff, filter_annotation
 
 from tqdm import tqdm
@@ -76,16 +76,18 @@ class Metric:
     >>> print(mtc) # show the report  # doctest: +SKIP
     ...
     """
-    def __init__(self, include_dec: bool = True, speed_up: bool = True, filter_out: bool = False):
+    def __init__(self, include_dec: bool = True, speed_up: bool = True, filter_out: bool = False, max_workers: int = None):
         """
         The evaluation metric toolkit for L annotations.
         :param include_dec: include the declaration sentences in evaluation.
         :param speed_up: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
         :param filter_out: Filter out invalid sentences in the prediction.
+        :param max_workers: Maximum number of workers in parallel to accelerate. If None, use cpu_count in the tasks.
         """
         self.include_dec: bool = include_dec
         self.speed_up: bool = speed_up
         self.filter_out: bool = filter_out
+        self.max_workers: int = max_workers
 
         ## Records
         self.records: List[Record] = []
@@ -139,7 +141,7 @@ class Metric:
         if self.filter_out:
             pred = filter_annotation(pred)
         
-        common, aligns, filtered = cmp_question(pred, gold, include_dec=self.include_dec, verbose=verbose, speed_up=self.speed_up)
+        common, aligns, filtered = cmp_question(pred, gold, include_dec=self.include_dec, verbose=verbose, max_workers=self.max_workers, speed_up=self.speed_up)
         diff_log: str = align2diff(aligns, filtered)
         num_gold = cnt_sentences(gold, include_dec=self.include_dec)
         num_pred = cnt_sentences(pred, include_dec=self.include_dec)
