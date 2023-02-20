@@ -1,5 +1,6 @@
 import re, warnings, itertools
 from typing import List, Tuple
+from collections import OrderedDict
 from tqdm import tqdm
 
 from sympy.parsing.sympy_parser import (parse_expr,\
@@ -262,7 +263,7 @@ def parse_annotation(annotation: str):
         return lineno
     
     vars, facts, queries = [], [], []
-    local_dict = {}
+    local_dict = OrderedDict() # Ensure the same result to the same input
 
     alignment = {'vars': {}, 'facts': {}, 'queries': {}} # <sympy_object: lineno>
     filtered: List[str] = [] # filtered annotations, list of str

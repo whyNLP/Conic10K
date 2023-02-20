@@ -212,10 +212,10 @@ class Metric:
         f"Total common sentences: {self.t_common}\n\n"
 
         # TODO: rename to micro- and macro- ?
-        summary_report += "Sentece Level (Total):\n    "
+        summary_report += "Sentence Level (Total):\n    "
         summary_report += "Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}\n\n".format(self.prec, self.recall, self.f1)
 
-        summary_report += "Sentece Level (Question Average):\n    "
+        summary_report += "Sentence Level (Question Average):\n    "
         summary_report += "Precision: {:.2%}, Recall: {:.2%}, F1: {:.2%}\n\n".format(self.avg_prec, self.avg_recall, self.avg_f1)
 
         summary_report += "Question Level:\n    "

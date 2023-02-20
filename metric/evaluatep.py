@@ -19,19 +19,27 @@ def get_align_tuples(obj1, obj2, alignments, category='vars'):
     lineno2 = alignment2[category].get(obj2, -1)
     if lineno1 != -1 and lineno2 != -1:
         return (lineno1, lineno2)
-    return None
+    
+    raise ValueError(f"'{obj1}: {obj1.type}' or '{obj2}: {obj2.type}' is not found in alignemnts.")
 
-def each(aligned_vars, env_pack):
+
+def each(aligned_vars, env_pack, reconstruct: bool = False):
     """
     Each worker evaluates an alignment.
     """
 
-    # redundnat work, but necessary for multiprocessing pickling
-    aligned_vars1, aligned_vars2 = aligned_vars
-    dummy_vars, annotation1, annotation2, include_dec = env_pack
-    (_, facts1, queries1), _, alignment1 = parse_annotation(annotation1)
-    (_, facts2, queries2), _, alignment2 = parse_annotation(annotation2)
-    aligns = (alignment1, alignment2)
+    if reconstruct:
+        # redundnat work, but necessary for multiprocessing pickling
+        aligned_vars1, aligned_vars2 = aligned_vars
+        annotation1, annotation2, include_dec = env_pack
+        (vars1, facts1, queries1), _, alignment1 = parse_annotation(annotation1)
+        (vars2, facts2, queries2), _, alignment2 = parse_annotation(annotation2)
+        dummy_vars = [Dummy() for _ in range(len(vars1))]
+        aligned_vars1, aligned_vars2 = [vars1[idx] for idx in aligned_vars1], [vars2[idx] for idx in aligned_vars2]
+        aligns = (alignment1, alignment2)
+    else:
+        aligned_vars1, aligned_vars2 = aligned_vars
+        dummy_vars, facts1, queries1, facts2, queries2, aligns, include_dec = env_pack
 
     alignments = []
     
@@ -73,8 +81,8 @@ def each(aligned_vars, env_pack):
     
     if include_dec: # variables
         for src1, src2 in zip(aligned_vars1, aligned_vars2):
-            if src1.type == src2.type:
-                alignments.append(get_align_tuples(src1, src2, aligns, 'vars'))
+            assert src1.type == src2.type
+            alignments.append(get_align_tuples(src1, src2, aligns, 'vars'))
 
     return alignments
 
@@ -113,24 +121,26 @@ def cmp_question(
     
     # remove common vars. we think they are the same (not necessarily), reduce accuracy but may accelerate the comparing process.
     common_vars = [v for v in vars1 if v in vars2 and len(v.name) == 1] if speed_up else []
-    vars1, vars2 = [v for v in vars1 if v not in common_vars], [v for v in vars2 if v not in common_vars]
+    vars1_, vars2_ = [v for v in vars1 if v not in common_vars], [v for v in vars2 if v not in common_vars]
     default_alignments = [get_align_tuples(v, v, aligns) for v in common_vars]
-    dummy_vars = [Dummy() for _ in range(len(vars1))]
-    env_pack = dummy_vars, annotation1, annotation2, include_dec
     
     # Deal with multiprocessing
-    iterator = get_alignments(vars1, vars2)
+    iterator = get_alignments(vars1_, vars2_)
     iterator = list(iterator)
     possible_alignments = []
 
-    if len(iterator) <= 4: # overhead may cost too much
+    if len(iterator) <= 4: # overhead may cost too much, use single process
+        dummy_vars = [Dummy() for _ in range(len(vars1_))]
+        env_pack = dummy_vars, facts1, queries1, facts2, queries2, aligns, include_dec
         if verbose:
             iterator = tqdm(iterator, total=len(iterator), leave=False, desc="Question")
         for align in iterator:
-            possible_alignments.append(each(align, env_pack))
+            possible_alignments.append(each(align, env_pack, False))
     else:
         pool = Pool(max_workers=max_workers)
-        futures = [pool.submit(each, align, env_pack) for align in iterator]
+        iterator = [([vars1.index(v) for v in align1], [vars2.index(v) for v in align2]) for align1, align2 in iterator] # convert to picklable instances
+        env_pack = annotation1, annotation2, include_dec
+        futures = [pool.submit(each, align, env_pack, True) for align in iterator]
 
         if verbose:
             with tqdm(total=len(futures), leave=False, desc="Question") as t:
