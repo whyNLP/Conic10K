@@ -205,8 +205,7 @@ def cmp_sentence(sent1, sent2):
     Recursively compare two sentences. Return True if they are the same, False otherwise.
     """
 
-    try: # a big escaper to handle annoying seq2seq output.
-
+    def _cmp_sentence(sent1, sent2):
         if isinstance(sent1, Number) or isinstance(sent2, Number):
             return sent1.simplify() == sent2.simplify()
         if isinstance(sent1, NumberSymbol) or isinstance(sent2, NumberSymbol):
@@ -230,13 +229,17 @@ def cmp_sentence(sent1, sent2):
                 get_name(sent1) == get_name(sent2) and len(sent1.args) == len(sent2.args)):
             if get_name(sent1) in _order_insensitive_functions:
                 for permuted_arg1 in itertools.permutations(sent1.args):
-                    if all([cmp_sentence(arg1, arg2) for arg1, arg2 in zip(permuted_arg1, sent2.args)]):
+                    if all([_cmp_sentence(arg1, arg2) for arg1, arg2 in zip(permuted_arg1, sent2.args)]):
                         return True
             else:
-                return all([cmp_sentence(arg1, arg2) for arg1, arg2 in zip(sent1.args, sent2.args)])
+                return all([_cmp_sentence(arg1, arg2) for arg1, arg2 in zip(sent1.args, sent2.args)])
     
+    try: # a big escaper to handle annoying seq2seq output.
+        if sent1.free_symbols == sent2.free_symbols: # a quick check to accelerate
+            return _cmp_sentence(sent1, sent2)
+    except KeyboardInterrupt: # raise keyboard interrupt
+        raise
     except:
-
         pass
 
     return False
