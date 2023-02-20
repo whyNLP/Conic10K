@@ -63,7 +63,7 @@ class Metric:
 
     Notice: The filtering algorithm is by default NOT used in Metric. Sometimes
     we want to evaluate the direct output of a model instead of achieving a high
-    score. Thus, please turn on the `filter_out` option when initializing a
+    score. Thus, please turn on the `filter_pred` option when initializing a
     Metric if you want to clean up the prediction.
     
     >>> mtc = Metric()
@@ -76,17 +76,17 @@ class Metric:
     >>> print(mtc) # show the report  # doctest: +SKIP
     ...
     """
-    def __init__(self, include_dec: bool = True, speed_up: bool = True, filter_out: bool = False, max_workers: int = None):
+    def __init__(self, include_dec: bool = True, speed_up: bool = True, filter_pred: bool = False, max_workers: int = None):
         """
         The evaluation metric toolkit for L annotations.
         :param include_dec: include the declaration sentences in evaluation.
         :param speed_up: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
-        :param filter_out: Filter out invalid sentences in the prediction.
+        :param filter_pred: Filter out invalid sentences in the prediction and make other improvements. See `filter_annotation` in `utils.py` for details.
         :param max_workers: Maximum number of workers in parallel to accelerate. If None, use cpu_count in the tasks.
         """
         self.include_dec: bool = include_dec
         self.speed_up: bool = speed_up
-        self.filter_out: bool = filter_out
+        self.filter_pred: bool = filter_pred
         self.max_workers: int = max_workers
 
         ## Records
@@ -138,7 +138,7 @@ class Metric:
         :param question: (optional) The question text.
         :param verbose: Show the progress bar.
         """
-        if self.filter_out:
+        if self.filter_pred:
             pred = filter_annotation(pred)
         
         common, aligns, filtered = cmp_question(pred, gold, include_dec=self.include_dec, verbose=verbose, max_workers=self.max_workers, speed_up=self.speed_up)
@@ -201,6 +201,8 @@ class Metric:
             return "You have not tested any samples yet."
 
         summary_report = "=== Beginning of Report ===\n\n"
+
+        summary_report += "Settings:\n    - [{}] Include declaration\n    - [{}] Speed up (may under estimate)\n    - [{}] Filter (improve predictions)\n\n".format(*map(lambda x: ' ON ' if x else ' OFF', (self.include_dec, self.speed_up, self.filter_pred)))
 
         summary_report += "Main metric: {:.2%}\n\n".format(self.avg_f1)
 
