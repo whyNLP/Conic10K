@@ -123,7 +123,7 @@ standard_transformations = (lambda_notation, auto_symbol, repeated_decimals, aut
 def parse_al(s, local_dict = None):
     """
     Parse an Assertional Logic expression string into a valid
-    sympy expression. It also does simplification.
+    sympy expression. It also does partial simplification.
 
     In addition you can use alternative spellings of these operators:
       'x ==> y'   parses as   (x >> y)    # Implication
