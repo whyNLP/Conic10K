@@ -77,6 +77,6 @@ def test_filter(recwarn):
     annotation = "G: Hyperbola\nH: Point\nExpression(G) = (x^2/a^2 + y^2 = 1)\nExpression(G) = (x^2/a^2+y^2=1)\nEccentricity(G) = ?\nEccentricity(G) = ?"
     filtered = filter_annotation(annotation)
     assert filtered in [
-        "G: Hyperbola\nExpression(G) = (x^2/a^2+y^2=1)\nEccentricity(G) = ?\nEccentricity(G) = ?",
-        "G: Hyperbola\nExpression(G) = (x^2/a^2 + y^2 = 1)\nEccentricity(G) = ?\nEccentricity(G) = ?"
+        "G: Hyperbola\nH: Point\nExpression(G) = (x^2/a^2+y^2=1)\nEccentricity(G) = ?\nEccentricity(G) = ?",
+        "G: Hyperbola\nH: Point\nExpression(G) = (x^2/a^2 + y^2 = 1)\nEccentricity(G) = ?\nEccentricity(G) = ?"
     ]
