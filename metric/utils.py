@@ -77,14 +77,18 @@ def filter_annotation(annotation: str) -> str:
     (vars, facts, queries), to_filter, alignment = parse_annotation(annotation)
 
     ## check used variables
-    used_vars = set()
-    for expr in facts + queries:
-        used_vars = used_vars.union(expr.free_symbols)
-    unused_vars = set(vars).difference(used_vars)
-    undeclared_vars = used_vars.difference(set(vars).union({Symbol('x'), Symbol('y')}))
+    ## TODO: deal with the undeclared variables. remove facts/queries or add declarations, or do nothing?
+    # used_vars = set()
+    # for expr in facts + queries:
+    #     used_vars = used_vars.union(expr.free_symbols)
+    # unused_vars = set(vars).difference(used_vars)
+    # undeclared_vars = used_vars.difference(set(vars).union({Symbol('x'), Symbol('y')}))
 
-    declared_and_used_vars = set(vars).intersection(used_vars)
-    filtered = [f"{v}: {v.type}" for v in declared_and_used_vars]
+    ### we allow unused variabels. e.g. if the question mentioned O is the Origin, then 'O: Origin' should appear.
+
+    ### we should only remove variables that appear multiple times
+    ### this might change the original expression, e.g. 'P, Q: Point' -> 'P: Point', 'Q: Point'
+    filtered = [f"{v}: {v.type}" for v in vars]
 
     ## remove same facts
     for idx in alignment['facts'].values():
