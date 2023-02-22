@@ -78,7 +78,7 @@ class Metric:
     """
     def __init__(self, include_dec: bool = True, speed_up: bool = True, filter_pred: bool = False, max_workers: int = None):
         """
-        The evaluation metric toolkit for L annotations.
+        The evaluation metric toolkit for AL annotations.
         :param include_dec: include the declaration sentences in evaluation.
         :param speed_up: Assume single-character variables with the same name are matched. This would accelerate a lot, but may under estimate the result.
         :param filter_pred: Filter out invalid sentences in the prediction and make other improvements. See `filter_annotation` in `utils.py` for details.
