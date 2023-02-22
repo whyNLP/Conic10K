@@ -1,6 +1,6 @@
 import pytest
 
-from .evaluate import cmp_question
+from .evaluate import parse_al, cmp_question
 from .metric import Metric
 from .utils import diff, filter_annotation
 
@@ -15,6 +15,17 @@ def data():
     golds = [gold.replace(';', '\n') for gold in golds]
 
     return (preds, golds)
+
+
+def test_parse_lambda():
+    assert str(parse_al('lambda')) == 'lambda'
+    assert str(parse_al('z=lambda+1')) == 'Eq(z, lambda + 1)'
+    assert str(parse_al('lambda=t')) == 'Eq(lambda, t)'
+
+def test_parse_intervals():
+    assert str(parse_al('Range(h) = [1, 2]')) == 'Eq(Range(h), Interval_cc(1, 2))'
+    assert str(parse_al('Range(h) = (1, a+k*(1+x)]')) == 'Eq(Range(h), Interval_oc(1, a + k*(x + 1)))'
+    assert str(parse_al('Range(z) = [(z+1)*t, 2+(5*x+1))')) == 'Eq(Range(z), Interval_co(t*(z + 1), 5*x + 1 + 2))'
 
 
 def test_cmp_question(data):

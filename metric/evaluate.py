@@ -78,7 +78,7 @@ def auto_symbol(tokens, local_dict, global_dict):
             name = tokVal
 
             if (name in ['True', 'False', 'None']
-                or iskeyword(name)
+                or (iskeyword(name) and name != 'lambda')
                 # Don't convert attribute access
                 or (prevTok[0] == OP and prevTok[1] == '.')
                 # Do convert keyword arguments
@@ -114,9 +114,95 @@ def auto_symbol(tokens, local_dict, global_dict):
 
     return result
 
-standard_transformations = (lambda_notation, auto_symbol, repeated_decimals, auto_number,
-    factorial_notation)
 
+class Interval_cc(Function):
+    nargs = 2
+
+    def __repr__(self):
+        return "[" + ", ".join(map(str, self.args)) + "]"
+    
+class Interval_co(Function):
+    nargs = 2
+
+    def __repr__(self):
+        return "[" + ", ".join(map(str, self.args)) + ")"
+    
+class Interval_oc(Function):
+    nargs = 2
+
+    def __repr__(self):
+        return "(" + ", ".join(map(str, self.args)) + "]"
+    
+    
+_default_interval_dict = {
+    'Interval_cc': Interval_cc,
+    'Interval_co': Interval_co,
+    'Interval_oc': Interval_oc
+}
+
+def auto_interval(tokens, local_dict, global_dict):
+    """
+    Deal with the intervals [a, b], [a, b), (a, b] in sentences.
+     - [a, b] -> Interval_cc(a, b)
+     - [a, b) -> Interval_co(a, b)
+     - (a, b] -> Interval_oc(a, b)
+
+    Call before `auto_symbol`.
+    """
+    result = []
+    stack = []
+    commas = [] # dp for counting commas
+    # L_BRACKETS = '([{'
+    # R_BRACKETS = ')]}'
+
+    for tokNum, tokVal in tokens:
+        if tokNum == OP:
+            name = tokVal
+
+            if name in '([{':
+                stack.append((name, len(result)))
+                result.append((tokNum, tokVal))
+            elif name in ')]}':
+                l_name, l_idx = stack.pop()
+
+                # [a, b] -> Interval_cc(a, b)
+                if (l_name == '[' and name == ']'
+                    and commas[-1] - commas[l_idx] == 1):
+                    result[l_idx] = (OP, '(')
+                    result.insert(l_idx, (NAME, 'Interval_cc'))
+                    result.append((OP, ')'))
+                # [a, b) -> Interval_co(a, b)
+                elif (l_name == '[' and name == ')'
+                    and commas[-1] - commas[l_idx] == 1):
+                    result[l_idx] = (OP, '(')
+                    result.insert(l_idx, (NAME, 'Interval_co'))
+                    result.append((OP, ')'))
+                # (a, b] -> Interval_oc(a, b)
+                elif (l_name == '(' and name == ']'
+                    and commas[-1] - commas[l_idx] == 1):
+                    result[l_idx] = (OP, '(')
+                    result.insert(l_idx, (NAME, 'Interval_oc'))
+                    result.append((OP, ')'))
+                else:
+                    result.append((tokNum, tokVal))
+
+            else:
+                result.append((tokNum, tokVal))
+        else:
+            result.append((tokNum, tokVal))
+
+        # update # of commas
+        prev_comma = commas[-1] if len(commas) else 0
+        if (tokNum, tokVal) == (OP, ','):
+            commas.append(prev_comma + 1)
+        else:
+            commas.append(prev_comma)
+
+    return result
+
+
+custom_transformations = (auto_interval, auto_symbol, repeated_decimals, auto_number, 
+        factorial_notation, convert_equals_signs)
 
 ## ===== Parse sentences =====
 
@@ -141,8 +227,6 @@ def parse_al(s, local_dict = None):
     ##       Need further modify the set parsing method and utils to fully solve
     ##       this problem.
     s = re.sub(r'=\s*True', '', s)
-    ## Replace keywords
-    s = re.sub(r'lambda', 'lbd_', s)
     ## TODO: Replace special variables. This might be a hack?
     s = re.sub(r'(?:([a-zA-Z])(?:_\{(\d+)\}))', r'\1_\2', s)
     ## Detect type definition. Return a list of variables for type definition.
@@ -159,9 +243,8 @@ def parse_al(s, local_dict = None):
     ## Deal with enumerate sets
     s = re.sub(r'\{(.*)\}', r'set(\1)', s)
     ## Now eval the string.  (A security hole; do not use with an adversary.)
-    return parse_expr(s, transformations=(
-            standard_transformations + (convert_equals_signs,)),
-            local_dict={**_default_local_dict, **local_dict}, evaluate=False)
+    return parse_expr(s, transformations=custom_transformations,
+            local_dict={**_default_interval_dict, **_default_local_dict, **local_dict}, evaluate=False)
 
 
 ## ===== Compare sentences =====
