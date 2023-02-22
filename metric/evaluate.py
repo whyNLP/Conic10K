@@ -114,46 +114,29 @@ def auto_symbol(tokens, local_dict, global_dict):
 
     return result
 
-
-class Interval_cc(Function):
-    nargs = 2
-
-    def __repr__(self):
-        return "[" + ", ".join(map(str, self.args)) + "]"
-    
-class Interval_co(Function):
-    nargs = 2
-
-    def __repr__(self):
-        return "[" + ", ".join(map(str, self.args)) + ")"
-    
-class Interval_oc(Function):
-    nargs = 2
-
-    def __repr__(self):
-        return "(" + ", ".join(map(str, self.args)) + "]"
-    
-    
-_default_interval_dict = {
-    'Interval_cc': Interval_cc,
-    'Interval_co': Interval_co,
-    'Interval_oc': Interval_oc
-}
-
 def auto_interval(tokens, local_dict, global_dict):
     """
-    Deal with the intervals [a, b], [a, b), (a, b] in sentences.
-     - [a, b] -> Interval_cc(a, b)
-     - [a, b) -> Interval_co(a, b)
-     - (a, b] -> Interval_oc(a, b)
+    Deal with the intervals (a, b), [a, b], [a, b), (a, b] in sentences.
+     - (a, b) -> tuple(a, b)
+     - (a, b] -> Interval_left_open_right_close(a, b)
+     - [a, b) -> Interval_left_close_right_open(a, b)
+     - [a, b] -> Interval_left_close_right_close(a, b)
+     - {a, b} -> set(a, b)
 
     Call before `auto_symbol`.
     """
+    MAPPING = {
+        # ('(', ')'): 'tuple', # it seems that we need to treat parentheses more carefully
+                               # TODO: parse tuples to sympy objects. is it necessary?
+        ('(', ']'): 'Interval_left_open_right_close',
+        ('[', ')'): 'Interval_left_close_right_open',
+        ('[', ']'): 'Interval_left_close_right_close',
+        ('{', '}'): 'set', # it is different from python set. just parsed as a function name.
+    }
+    # TODO: here we do not consider the number of the arguments. should we make more constraints?
+
     result = []
     stack = []
-    commas = [] # dp for counting commas
-    # L_BRACKETS = '([{'
-    # R_BRACKETS = ')]}'
 
     for tokNum, tokVal in tokens:
         if tokNum == OP:
@@ -161,42 +144,16 @@ def auto_interval(tokens, local_dict, global_dict):
 
             if name in '([{':
                 stack.append((name, len(result)))
-                result.append((tokNum, tokVal))
             elif name in ')]}':
                 l_name, l_idx = stack.pop()
+                func_name = MAPPING.get((l_name, name), None)
 
-                # [a, b] -> Interval_cc(a, b)
-                if (l_name == '[' and name == ']'
-                    and commas[-1] - commas[l_idx] == 1):
+                if func_name:
                     result[l_idx] = (OP, '(')
-                    result.insert(l_idx, (NAME, 'Interval_cc'))
-                    result.append((OP, ')'))
-                # [a, b) -> Interval_co(a, b)
-                elif (l_name == '[' and name == ')'
-                    and commas[-1] - commas[l_idx] == 1):
-                    result[l_idx] = (OP, '(')
-                    result.insert(l_idx, (NAME, 'Interval_co'))
-                    result.append((OP, ')'))
-                # (a, b] -> Interval_oc(a, b)
-                elif (l_name == '(' and name == ']'
-                    and commas[-1] - commas[l_idx] == 1):
-                    result[l_idx] = (OP, '(')
-                    result.insert(l_idx, (NAME, 'Interval_oc'))
-                    result.append((OP, ')'))
-                else:
-                    result.append((tokNum, tokVal))
-
-            else:
-                result.append((tokNum, tokVal))
-        else:
-            result.append((tokNum, tokVal))
-
-        # update # of commas
-        prev_comma = commas[-1] if len(commas) else 0
-        if (tokNum, tokVal) == (OP, ','):
-            commas.append(prev_comma + 1)
-        else:
-            commas.append(prev_comma)
+                    result.insert(l_idx, (NAME, func_name))
+                    tokVal = ')'
+        
+        result.append((tokNum, tokVal))
 
     return result
 
@@ -240,11 +197,9 @@ def parse_al(s, local_dict = None):
             tmp_v = TypeSymbol(v, type=tp)
             local_dict[v] = tmp_v
         return [local_dict[v] for v in vs]
-    ## Deal with enumerate sets
-    s = re.sub(r'\{(.*)\}', r'set(\1)', s)
     ## Now eval the string.  (A security hole; do not use with an adversary.)
     return parse_expr(s, transformations=custom_transformations,
-            local_dict={**_default_interval_dict, **_default_local_dict, **local_dict}, evaluate=False)
+            local_dict={**_default_local_dict, **local_dict}, evaluate=False)
 
 
 ## ===== Compare sentences =====

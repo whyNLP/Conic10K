@@ -23,9 +23,11 @@ def test_parse_lambda():
     assert str(parse_al('lambda=t')) == 'Eq(lambda, t)'
 
 def test_parse_intervals():
-    assert str(parse_al('Range(h) = [1, 2]')) == 'Eq(Range(h), Interval_cc(1, 2))'
-    assert str(parse_al('Range(h) = (1, a+k*(1+x)]')) == 'Eq(Range(h), Interval_oc(1, a + k*(x + 1)))'
-    assert str(parse_al('Range(z) = [(z+1)*t, 2+(5*x+1))')) == 'Eq(Range(z), Interval_co(t*(z + 1), 5*x + 1 + 2))'
+    assert str(parse_al('Focus(C) = {F_{1}, F_{2}}')) == 'Eq(Focus(C), set(F_1, F_2))'
+    assert str(parse_al('Focus(C) = {LeftFoucs(E), Focus(F)}')) == 'Eq(Focus(C), set(LeftFoucs(E), Focus(F)))'
+    assert str(parse_al('Range(h) = [1, 2]')) == 'Eq(Range(h), Interval_left_close_right_close(1, 2))'
+    assert str(parse_al('Range(h) = (1, a+k*(1+x)]')) == 'Eq(Range(h), Interval_left_open_right_close(1, a + k*(x + 1)))'
+    assert str(parse_al('Range(z) = [(z+1)*t, 2+(5*x+1))')) == 'Eq(Range(z), Interval_left_close_right_open(t*(z + 1), 5*x + 1 + 2))'
 
 
 def test_cmp_question(data):
