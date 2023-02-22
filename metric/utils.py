@@ -76,16 +76,8 @@ def filter_annotation(annotation: str) -> str:
     ## remove invalid sentences
     (vars, facts, queries), to_filter, alignment = parse_annotation(annotation)
 
-    ## check used variables
-    ## TODO: deal with the undeclared variables. remove facts/queries or add declarations, or do nothing?
-    # used_vars = set()
-    # for expr in facts + queries:
-    #     used_vars = used_vars.union(expr.free_symbols)
-    # unused_vars = set(vars).difference(used_vars)
-    # undeclared_vars = used_vars.difference(set(vars).union({Symbol('x'), Symbol('y')}))
-
     ### we allow unused variabels. e.g. if the question mentioned O is the Origin, then 'O: Origin' should appear.
-
+    
     ### we should only remove variables that appear multiple times
     ### this might fail on some special cases, e.g. 'P, Q: Point', 'P: Circle' will retain both.
     filtered = []
@@ -102,3 +94,29 @@ def filter_annotation(annotation: str) -> str:
 
     return '\n'.join(filtered) if filtered else ''
     
+
+def filter_annotation_aggressive(annotation: str) -> str:
+    """
+    Similar to `filter_annotation`, but have more aggressive strategies. May
+    change the annotations to (most likely) equivlent expressions.
+
+    TODO: The correctness of this function requires further testing. WIP.
+    """
+    ## remove invalid sentences
+    (vars, facts, queries), to_filter, alignment = parse_annotation(annotation)
+
+    ## check used variables
+    ## TODO: deal with the undeclared variables. remove facts/queries or add declarations, or do nothing?
+    used_vars = set()
+    for expr in facts + queries:
+        used_vars = used_vars.union(expr.free_symbols)
+    unused_vars = set(vars).difference(used_vars)
+    undeclared_vars = used_vars.difference(set(vars).union({Symbol('x'), Symbol('y')}))
+
+    declared_and_used_vars = set(vars).intersection(used_vars)
+    filtered = [f"{v}: {v.type}" for v in declared_and_used_vars]
+
+    filtered.extend(list(set(str(s) for s in facts)))
+    filtered.extend([f'{expr} = ?' for expr in queries])
+
+    return '\n'.join(filtered) if filtered else ''
