@@ -184,6 +184,8 @@ def parse_al(s, local_dict = None):
     ##       Need further modify the set parsing method and utils to fully solve
     ##       this problem.
     s = re.sub(r'=\s*True', '', s)
+    ## Replace keywords
+    s = re.sub(r'lambda', 'lbd_', s)
     ## TODO: Replace special variables. This might be a hack?
     s = re.sub(r'(?:([a-zA-Z])(?:_\{(\d+)\}))', r'\1_\2', s)
     ## Detect type definition. Return a list of variables for type definition.

@@ -87,11 +87,13 @@ def filter_annotation(annotation: str) -> str:
     ### we allow unused variabels. e.g. if the question mentioned O is the Origin, then 'O: Origin' should appear.
 
     ### we should only remove variables that appear multiple times
-    ### this might change the original expression, e.g. 'P, Q: Point' -> 'P: Point', 'Q: Point'
-    filtered = [f"{v}: {v.type}" for v in vars]
+    ### this might fail on some special cases, e.g. 'P, Q: Point', 'P: Circle' will retain both.
+    filtered = []
+    for idx in set(alignment['vars'].values()):
+        filtered.append(to_filter[idx])
 
     ## remove same facts
-    for idx in alignment['facts'].values():
+    for idx in set(alignment['facts'].values()):
         filtered.append(to_filter[idx])
 
     for expr in queries:

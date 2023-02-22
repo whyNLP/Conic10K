@@ -18,9 +18,9 @@ def data():
 
 
 def test_parse_lambda():
-    assert str(parse_al('lambda')) == 'lambda'
-    assert str(parse_al('z=lambda+1')) == 'Eq(z, lambda + 1)'
-    assert str(parse_al('lambda=t')) == 'Eq(lambda, t)'
+    assert str(parse_al('lambda')) == 'lbd_'
+    assert str(parse_al('z=lambda+1')) == 'Eq(z, lbd_ + 1)'
+    assert str(parse_al('lambda=t')) == 'Eq(lbd_, t)'
 
 def test_parse_intervals():
     assert str(parse_al('Focus(C) = {F_{1}, F_{2}}')) == 'Eq(Focus(C), set(F_1, F_2))'
@@ -45,7 +45,7 @@ def test_metric_general_tiny(recwarn, data):
     mtc = Metric()
     mtc.cmps(preds, golds)
 
-    assert abs(mtc.avg_f1 - 0.955732645806477) < 1e-3
+    assert abs(mtc.avg_f1 - 0.955732645806477) < 1e-4
 
 def test_metric_general_medium(recwarn, data):
     preds, golds = data
@@ -56,7 +56,7 @@ def test_metric_general_medium(recwarn, data):
     mtc = Metric()
     mtc.cmps(preds, golds)
 
-    assert abs(mtc.avg_f1 - 0.9637181486584114) < 1e-3
+    assert abs(mtc.avg_f1 - 0.9637181486584114) < 1e-4
 
 @pytest.mark.skip(reason='Time costly test.')
 def test_metric_general_large(recwarn, data):
@@ -65,7 +65,7 @@ def test_metric_general_large(recwarn, data):
     mtc = Metric()
     mtc.cmps(preds, golds)
 
-    assert abs(mtc.avg_f1 - 0.9482032003728795) < 1e-3
+    assert abs(mtc.avg_f1 - 0.9482032003728795) < 1e-4
 
 
 def test_difflog(recwarn, data):
