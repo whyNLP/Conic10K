@@ -61,7 +61,7 @@ _default_local_dict = {
 
 # Functions that are insensitive to argument order
 _order_insensitive_functions = [
-    'Eq', 'set', 'Distance', 'DotProduct', 'InterReciprocal', 'Intersection', 'LineOf', 'LineSegmentOf', 'NumIntersection', 'TangencyPoint', 'TriangleOf', 'Add', 'Mul', 'IsIntersect', 'IsParallel', 'IsPerpendicular', 'IsSeparated', 'IsTangent', 'IsOutTangent', 'IsInTangent', 'FootPoint'
+    'Eq', 'set', 'Distance', 'DotProduct', 'InterReciprocal', 'Intersection', 'LineOf', 'LineSegmentOf', 'NumIntersection', 'TangentPoint', 'TriangleOf', 'Add', 'Mul', 'IsIntersect', 'IsParallel', 'IsPerpendicular', 'IsSeparated', 'IsTangent', 'IsOutTangent', 'IsInTangent', 'FootPoint'
 ]
 
 # Rewrite the parse algorithm to allow equations as function arguments
