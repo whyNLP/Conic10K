@@ -115,7 +115,7 @@ class Metric:
         """
 
         preds = [s.replace(';', '\n') for s in preds]
-        refs = [s.replace(';', '\n') for s in refs]
+        golds = [s.replace(';', '\n') for s in golds]
 
         if questions is None:
             questions = [None] * len(preds)

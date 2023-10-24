@@ -117,8 +117,6 @@ def main():
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
     assert tokenizer.eos_token_id is not None
-    res = tokenizer.encode('hello')
-    append_eos = res[-1] != tokenizer.eos_token_id
 
     raw_datasets = get_dataset(path=data_args.dataset_path, task=data_args.task)
 

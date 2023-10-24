@@ -9,13 +9,13 @@ from peft import PeftModel
 from data import get_dataset
 
 parser = ArgumentParser()
-parser.add_argument('task', type=str)
-parser.add_argument('model_name_or_path', type=str)
-parser.add_argument('output_file', type=str)
-parser.add_argument('lora_path', type=str, default='')
-parser.add_argument('dataset_path', default='conic10k', type=str)
-parser.add_argument('split', default='test', type=str)
-parser.add_argument('zero_shot', type=bool, action='store_true')
+parser.add_argument('--task', type=str)
+parser.add_argument('--model_name_or_path', type=str)
+parser.add_argument('--output_file', type=str)
+parser.add_argument('--lora_path', type=str, default='')
+parser.add_argument('--dataset_path', default='conic10k', type=str)
+parser.add_argument('--split', default='test', type=str, required=False)
+parser.add_argument('--zero_shot', action='store_true', required=False)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -26,10 +26,9 @@ if __name__ == '__main__':
     model_name = args.model_name_or_path
     lora_path = args.lora_path
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name, local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
-        model_name, local_files_only=True,
+        model_name, 
         torch_dtype=torch.bfloat16,
         trust_remote_code=True,
     ).cuda()
@@ -48,7 +47,7 @@ if __name__ == '__main__':
 
     def generate(text):
         input_ids = tokenizer.encode(text, return_tensors='pt').cuda()
-        outputs = model.generate(input_ids, max_length=1024, do_sample=False,
+        outputs = model.generate(inputs=input_ids, max_length=1024, do_sample=False,
                                  num_return_sequences=1, eos_token_id=tokenizer.eos_token_id)
         return tokenizer.decode(outputs[0])
 

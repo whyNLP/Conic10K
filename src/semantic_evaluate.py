@@ -5,10 +5,10 @@ from metric.metric import Metric
 
 
 parser = ArgumentParser()
-parser.add_argument('dataset_path', default='conic10k', type=str)
-parser.add_argument('prediction_file', type=str)
-parser.add_argument('split', default='test', type=str)
-parser.add_argument('report_file', default='', type=str)
+parser.add_argument('--dataset_path', default='conic10k', type=str)
+parser.add_argument('--prediction_file', type=str)
+parser.add_argument('--split', default='test', type=str)
+parser.add_argument('--report_file', default='', type=str)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -23,6 +23,11 @@ if __name__ == '__main__':
     ]
 
     preds = json.load(open(args.prediction_file))
+
+    preds = [
+        p.split('" is')[1].strip().replace('</s>', '')
+        for p in preds
+    ]
 
     mtc = Metric(max_workers=1)
     mtc.cmps(preds, refs, verbose=True)

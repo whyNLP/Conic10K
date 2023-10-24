@@ -1,19 +1,18 @@
-CUDA_VISIBLE_DEVICES=0 python src/train_clm.py \
+CUDA_VISIBLE_DEVICES='2' python src/train_clm.py \
     --dataset_path conic10k \
-    --model_name_or_path bloomz-1b7 \
-    --task mathqa \
+    --model_name_or_path llama-7b \
+    --task semantic_parsing \
     --do_train \
     --do_eval \
     --load_in_8bit \
     --block_size 512 \
-    --per_device_train_batch_size 1 \
-    --num_train_epochs 20 \
-    --learning_rate 8e-5 \
+    --num_train_epochs 1 \
+    --gradient_accumulation_steps 1 \
+    --learning_rate 1e-4 \
     --save_total_limit 3 \
     --load_best_model_at_end True \
     --save_strategy epoch \
     --evaluation_strategy epoch \
-    --auto_find_batch_size \
-    --output_dir . \
+    --output_dir output \
     --bf16 \
     --use_lora
