@@ -44,7 +44,7 @@ sh scripts/train_clm.sh
 sh scripts/train_encoder_decoder.sh
 ```
 
-Run he following script to generate with a model.
+Run the following script to generate with a model.
 ```bash
 python src/generate.py \
     --task semantic_parsing \
