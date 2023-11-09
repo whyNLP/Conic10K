@@ -1,5 +1,5 @@
 # Conic10K
-This is the official release of our EMNLP 2023 paper, [Conic10K: A large-scale dataset for closed-vocabulary math problem understanding](link).
+This is the official release of our EMNLP 2023 paper, [Conic10K: A large-scale dataset for closed-vocabulary math problem understanding](https://faculty.sist.shanghaitech.edu.cn/faculty/tukw/emnlp-f23conic.pdf).
 
 ## Install
 To run the codes, you need to install the requirements:
