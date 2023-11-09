@@ -63,4 +63,4 @@ python src/semantic_evaluate.py \
 
 ## License
 
-This project is [MIT licensed](LICENSE).
+This project is [MIT licensed](LICENSE). The dataset is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
