@@ -10,19 +10,28 @@ pip install -r requirements.txt
 ```
 
 ## Dataset
-Our dataset is located in `conic10k`.
+Our dataset is located in [`conic10k`](conic10k).
+
+You can also get our dataset in huggingface datasets.
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("WenyangHui/Conic10K")
+```
 
 Each sample in our dataset contain the following attributes.
 
 | Attribute |  Description  |
 | --- | --- | 
-| text  |   |
-| fact_expressions  |   |
-| query_expressions  |   |
-| answer_expressions  |   |
-| fact_spans  |   |
-| query_spans  |   |
-| process  |   |
+| text  | Question text in natural language with math formulas in latex. |
+| fact_expressions  | Formal represention of the facts in the question. |
+| query_expressions  | Formal represention of the queries in the question. |
+| answer_expressions  | Answer to the question |
+| fact_spans  | Text span corresponding to each expression in fact_expressions. |
+| query_spans  | Text span corresponding to each expression in query_expressions. |
+| process  | Rationale |
+
 
 ## Run
 
