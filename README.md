@@ -25,8 +25,8 @@ Each sample in our dataset contain the following attributes.
 | Attribute |  Description  |
 | --- | --- | 
 | text  | Question text in natural language with math formulas in latex. |
-| fact_expressions  | Formal represention of the facts in the question. |
-| query_expressions  | Formal represention of the queries in the question. |
+| fact_expressions  | Formal representation of the facts in the question. |
+| query_expressions  | Formal representation of the queries in the question. |
 | answer_expressions  | Answer to the question |
 | fact_spans  | Text span corresponding to each expression in fact_expressions. |
 | query_spans  | Text span corresponding to each expression in query_expressions. |
