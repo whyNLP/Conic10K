@@ -53,7 +53,7 @@ print(train_dataset[1])
 # {'text': '已知双曲线$\\frac{x^{2}}{4}-\\frac{y^{2}}{m^{2}}=1(m>0)$的一条渐近线方程是$5 x-2 y=0$，则$m$=?', 'answer_expressions': '5', 'fact_expressions': 'G: Hyperbola;m: Number;m>0;Expression(G) = (x^2/4 - y^2/m^2 = 1);Expression(OneOf(Asymptote(G))) = (5*x - 2*y = 0)', 'query_expressions': 'm', 'fact_spans': '[[[2, 49]], [[71, 74]], [[5, 49]], [[2, 49]], [[2, 69]]]', 'query_spans': '[[[71, 76]]]', 'process': '双曲线\\frac{x^{2}}{4}-\\frac{y^{2}}{m2}=1(m>0)的渐近线方程为y=\\pm\\frac{m}{2}x直线5x-2y=0的方程可化为y=\\frac{5}{2}x,所以,m=5.'}
 ```
 
-Each sample in our dataset contain the following attributes.
+Each sample in our dataset contains the following attributes.
 
 | Attribute |  Description  |
 | --- | --- | 
@@ -65,6 +65,7 @@ Each sample in our dataset contain the following attributes.
 | query_spans  | Text span corresponding to each expression in query_expressions. |
 | process  | Rationale |
 
+For more information about the annotation of this dataset, please refer to the folder [`docs`](docs) in this repo.
 
 ## Run
 
